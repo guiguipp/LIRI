@@ -1,17 +1,61 @@
 require("dotenv").config();
 var keys = require("./keys.js")
+var Twitter = require('twitter');
 
 // This looks like it's built from an object constructor... ?
 // var spotify = new Spotify(keys.spotify);
 // var client = new Twitter(keys.twitter);
 
 var command = process.argv[2]
-console.log(command);
+console.log("this is the command: ", command);
 
 /* 
 node liri.js my-tweets
 This will show your last 20 tweets and when they were created at in your terminal/bash window.
 */ 
+var client = new Twitter({
+    consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+    access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+    access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+  });
+
+// client.get(path, params, callback);
+// count should be 20
+var numTweets = 20;
+
+if (command === "my-tweets") {
+    var params = {screen_name: 'panierdecrabe'};
+    client.get('statuses/user_timeline', params, function(error, tweets, response) {
+    if (!error) {
+        // var data = JSON.parse(tweets)
+        // console.log(tweets);
+
+        tweets.forEach(function(element) {
+            console.log(element.created_at);
+            console.log(element.text);
+          });
+          
+
+
+
+        // console.log(tweets[0].created_at);
+        // console.log(tweets[0].text);
+        }
+    })
+};
+    
+    // });
+// }
+    // client.get('statuses/home_timeline', function(error, tweets, response) {
+    //     if(error) throw error;
+    //     console.log(JSON.stringify(response,null,2));
+    //     console.log(JSON.stringify(response.text));  // The favorites. 
+    //     console.log(response.created_at);  // Raw response object. 
+//       });
+// }
+
+
 
 /*
 node liri.js spotify-this-song '<song name here>'
