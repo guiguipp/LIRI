@@ -26,7 +26,7 @@ inquirer.prompt([
   .then(function(response) {
     // If the inquirerResponse confirms, we displays the inquirerResponse's username and pokemon from the answers.
     if (response.action === "Show Tweets") {
-      console.log("Ok! Here are your latest tweets: ");
+      console.log(`Ok! Here are your latest tweets:\n`);
         showTweets();
     }
     else if (response.action === "Search a song") {
@@ -48,7 +48,21 @@ inquirer.prompt([
     }
 
     else if (response.action === "Search a movie") {
-        console.log("Which movie?");
+        inquirer.prompt([
+            {
+            type: "input",
+            message: "Got it! ;)\nWhich movie's information do you need?",
+            name: "movie"
+            },
+            ])
+            .then(function(movieInput) {            
+                if (movieInput.movie) {
+                    searchMovie(movieInput.movie);
+                }
+                else {
+                    searchMovie("Mr. Nobody")
+                }
+            })
     }
     else {
       console.log("\nNot sure what to do? You can show your last tweets, search a song in Spotify, or a movie in the OMDB!\n");
@@ -79,11 +93,16 @@ function showTweets() {
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
     if (!error) {
         tweets.forEach(function(element) {
-            console.log("********************");
-            console.log(element.created_at);
-            console.log("********************");
-            console.log(element.text);
-            console.log("--------------------\n\n");
+            console.log(`***********************************`);
+            console.log(`On ${element.created_at}`);
+            console.log(`***********************************\n`);
+            if(element.retweeted_status != undefined) {
+                console.log(`Retweeted a tweet from user "${element.retweeted_status.user.name}".\nHere is the original tweet:\n\n${element.retweeted_status.text}`)
+            }
+            else {
+                console.log(`Original tweet:\n${element.text}`);
+            }
+            console.log("--------------------\n");            
           });
         }
     })
@@ -93,18 +112,6 @@ function showTweets() {
 SPOTIFY
 ==================
 */ 
-
-/*
-node liri.js spotify-this-song '<song name here>'
-This will show the following information about the song in your terminal/bash window
-
-Artist(s)
-The song's name
-A preview link of the song from Spotify
-The album that the song is from
-
-If no song is provided then your program will default to "The Sign" by Ace of Base.
-*/
 
 // search: function({ type: 'artist OR album OR track', query: 'My search query', limit: 20 }, callback);
 if (command === "spotify-this-song") {
@@ -116,64 +123,48 @@ function searchSpotify (searchedTrack) {
     var spotify = new Spotify({
         id: process.env.SPOTIFY_ID,
         secret: process.env.SPOTIFY_SECRET
-      });
-    // console.log("this is spotify" + JSON.stringify(spotify))   
-      spotify.search({ type: 'track', limit: 5, query: track })
+        });
+        spotify.search({ 
+            type: 'track', 
+            limit: 5, 
+            query: track 
+        })
         .then(function(response) {
             response.tracks.items.forEach(function(element) {
-                // console.log(element);
                 console.log("***************")
                 console.log("Track Name: ", element.name);
                 console.log("Album: ", element.album.name);
                 console.log("Artist: ", element.artists[0].name);
-                // console.log("Other info from 'Artists': ", element.artists);
                 console.log("URL: ", element.href) // which will not work without the token ID
                 console.log("***************")
             });
         })
         .catch(function(err) {
-          console.log(err);
+            console.log(err);
         });
-}
+    }   
 
 /*
-node liri.js movie-this '<movie name here>'
-
-This will output the following information to your terminal/bash window:
-
-   * Title of the movie.
-   * Year the movie came out.
-   * IMDB Rating of the movie.
-   * Rotten Tomatoes Rating of the movie.
-   * Country where the movie was produced.
-   * Language of the movie.
-   * Plot of the movie.
-   * Actors in the movie.
-
-
-If the user doesn't type a movie in, the program will output data for the movie 'Mr. Nobody.'
-You'll use the request package to retrieve data from the OMDB API. Like all of the in-class activities, the OMDB API requires an API key. You may use trilogy.
+===============
+OMDB
+===============
 */
-
 
 if (command === "movie-this") {
     let movie = instruction + "+" + instruction2;
-    let query = "https://www.omdbapi.com/?t=" + movie + "&y=&plot=short&apikey=trilogy";
-    console.log(query);
+}
+
+function searchMovie (movieName) {
+    let query = "https://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
     request(query, function (error, response, body) {
     if (!error) {
         let data = JSON.parse(body);
-        // console.log('body: ', data);
-        console.log("Title of the movie: ", data.Title);
-        console.log("Year the movie came out: ", data.Year);
-        // console.log("IMDB Rating of the movie: ", data.imdbRating);
+        console.log(`Got it! Here is your info:\n\n**********\nTitle of the movie: ${data.Title}\nYear the movie came out: ${data.Year}\nCountry where the movie was produced: ${data.Country}\nLanguage of the movie: ${data.Language}.\n\nPlot of the movie:\n"${data.Plot}"\nCast: ${data.Actors}\n`)
         data.Ratings.forEach(function(element) {
-        console.log(element.Source, "Rating of the movie: ", element.Value);
+            console.log(`${element.Source} rating of the movie: ${element.Value}`)
         });
-        console.log("Country where the movie was produced: ", data.Country);
-        console.log("Language of the movie: ", data.Language);
-        console.log("Plot of the movie: ", data.Plot);
-        console.log("Cast: ", data.Actors);
+        console.log(`\n**********\n`);
+        
     }
     else {
         console.log('error:', error); 
@@ -181,7 +172,6 @@ if (command === "movie-this") {
     }
     });
 }
-
 
 /* 
 node liri.js do-what-it-says
@@ -191,4 +181,15 @@ Using the fs Node package, LIRI will take the text inside of random.txt and then
 It should run spotify-this-song for "I Want it That Way," as follows the text in random.txt.
 Feel free to change the text in that document to test out the feature for other commands.
 
+*/
+
+
+
+
+
+/* 
+BUGS:
+
+Spotify: Search for both tracks and albums
+Twitter: Not showing full text of tweet
 */
