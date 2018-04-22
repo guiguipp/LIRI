@@ -2,6 +2,7 @@ require("dotenv").config();
 var keys = require("./keys.js")
 var Twitter = require('twitter');
 var Spotify = require('node-spotify-api');
+var request = require('request');
 
 var command = process.argv[2];
 var instruction = process.argv[3];
@@ -54,7 +55,13 @@ If no song is provided then your program will default to "The Sign" by Ace of Ba
 
 // search: function({ type: 'artist OR album OR track', query: 'My search query', limit: 20 }, callback);
 if (command === "spotify-this-song") {
-    var track = instruction + " " + instruction2;
+    let track; 
+    if(instruction === "" && instruction2 === "") {
+    track = "The sign"    
+    }
+    else {
+        track = instruction + " " + instruction2;
+    }
     var spotify = new Spotify({
         id: process.env.SPOTIFY_ID,
         secret: process.env.SPOTIFY_SECRET
@@ -64,6 +71,7 @@ if (command === "spotify-this-song") {
         .search({ type: 'track', limit: 5, query: track })
         .then(function(response) {
             response.tracks.items.forEach(function(element) {
+                console.log(element)
                 console.log("***************")
                 console.log("Track Name: ", element.name);
                 console.log("Album: ", element.album.name);
@@ -79,8 +87,6 @@ if (command === "spotify-this-song") {
         });
 
 }
-
-
 
 
 /*
@@ -101,6 +107,37 @@ This will output the following information to your terminal/bash window:
 If the user doesn't type a movie in, the program will output data for the movie 'Mr. Nobody.'
 You'll use the request package to retrieve data from the OMDB API. Like all of the in-class activities, the OMDB API requires an API key. You may use trilogy.
 */
+
+
+if (command === "movie-this") {
+    let movie = instruction + "+" + instruction2;
+    let query = "https://www.omdbapi.com/?t=" + movie + "&y=&plot=short&apikey=trilogy";
+    console.log(query);
+    request(query, function (error, response, body) {
+    if (!error) {
+        let data = JSON.parse(body);
+        // console.log('body: ', data);
+        console.log("Title of the movie: ", data.Title);
+        console.log("Year the movie came out: ", data.Year);
+        // console.log("IMDB Rating of the movie: ", data.imdbRating);
+        data.Ratings.forEach(function(element) {
+        console.log(element.Source, "Rating of the movie: ", element.Value);
+        });
+        console.log("Country where the movie was produced: ", data.Country);
+        console.log("Language of the movie: ", data.Language);
+        console.log("Plot of the movie: ", data.Plot);
+        console.log("Cast: ", data.Actors);
+    }
+    else {
+        console.log('error:', error); 
+        console.log('statusCode:', response && response.statusCode);
+    }
+    });
+}
+
+
+
+
 
 
 /* 
