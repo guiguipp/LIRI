@@ -59,27 +59,18 @@ if (command === "spotify-this-song") {
         id: process.env.SPOTIFY_ID,
         secret: process.env.SPOTIFY_SECRET
       });
-       
+    console.log("this is spotify" + JSON.stringify(spotify))   
       spotify
         .search({ type: 'track', limit: 5, query: track })
         .then(function(response) {
-            // console.log(response.tracks.items[0]);
-            // typeof response;
-            //     // console.log(element.text);
-            //     // console.log(response);
             response.tracks.items.forEach(function(element) {
-                // console.log(element.name);
+                console.log("***************")
                 console.log("Track Name: ", element.name);
                 console.log("Album: ", element.album.name);
-                console.log("ARTIST: ", element.artists);
-                element.artists.forEach(function(e){
-                    console.log("external_urls.name: ",e.external_urls.name)
-                });
-                element.artists.external_urls.forEach(function(e){
-                    console.log("External_url for Each: ",e.name)
-                });
-                // console.log("Artist: ", element.artists.external_urls.name);
-                // console.log("Link: ", element.album);
+                console.log("Artist: ", element.artists[0].name);
+                // console.log("Other info from 'Artists': ", element.artists);
+                console.log("URL: ", element.href) // which will not work without the token ID
+                console.log("***************")
             });
                 
         })
