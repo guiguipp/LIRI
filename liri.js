@@ -1,17 +1,17 @@
 require("dotenv").config();
 var keys = require("./keys.js")
 var Twitter = require('twitter');
+var Spotify = require('node-spotify-api');
 
-// This looks like it's built from an object constructor... ?
-// var spotify = new Spotify(keys.spotify);
-// var client = new Twitter(keys.twitter);
-
-var command = process.argv[2]
+var command = process.argv[2];
+var instruction = process.argv[3];
+var instruction2 = process.argv[4];
 console.log("this is the command: ", command);
 
 /* 
-node liri.js my-tweets
-This will show your last 20 tweets and when they were created at in your terminal/bash window.
+==================
+TWITTER
+==================
 */ 
 var client = new Twitter({
     consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -20,42 +20,25 @@ var client = new Twitter({
     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
   });
 
-// client.get(path, params, callback);
-// count should be 20
 var numTweets = 20;
 
 if (command === "my-tweets") {
-    var params = {screen_name: 'panierdecrabe'};
+    var params = {screen_name: 'panierdecrabe', count: numTweets};
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
     if (!error) {
-        // var data = JSON.parse(tweets)
-        // console.log(tweets);
-
         tweets.forEach(function(element) {
             console.log(element.created_at);
             console.log(element.text);
           });
-          
-
-
-
-        // console.log(tweets[0].created_at);
-        // console.log(tweets[0].text);
         }
     })
 };
-    
-    // });
-// }
-    // client.get('statuses/home_timeline', function(error, tweets, response) {
-    //     if(error) throw error;
-    //     console.log(JSON.stringify(response,null,2));
-    //     console.log(JSON.stringify(response.text));  // The favorites. 
-    //     console.log(response.created_at);  // Raw response object. 
-//       });
-// }
 
-
+/* 
+==================
+SPOTIFY
+==================
+*/ 
 
 /*
 node liri.js spotify-this-song '<song name here>'
@@ -68,6 +51,46 @@ The album that the song is from
 
 If no song is provided then your program will default to "The Sign" by Ace of Base.
 */
+
+// search: function({ type: 'artist OR album OR track', query: 'My search query', limit: 20 }, callback);
+if (command === "spotify-this-song") {
+    var track = instruction + " " + instruction2;
+    var spotify = new Spotify({
+        id: process.env.SPOTIFY_ID,
+        secret: process.env.SPOTIFY_SECRET
+      });
+       
+      spotify
+        .search({ type: 'track', limit: 5, query: track })
+        .then(function(response) {
+            // console.log(response.tracks.items[0]);
+            // typeof response;
+            //     // console.log(element.text);
+            //     // console.log(response);
+            response.tracks.items.forEach(function(element) {
+                // console.log(element.name);
+                console.log("Track Name: ", element.name);
+                console.log("Album: ", element.album.name);
+                console.log("ARTIST: ", element.artists);
+                element.artists.forEach(function(e){
+                    console.log("external_urls.name: ",e.external_urls.name)
+                });
+                element.artists.external_urls.forEach(function(e){
+                    console.log("External_url for Each: ",e.name)
+                });
+                // console.log("Artist: ", element.artists.external_urls.name);
+                // console.log("Link: ", element.album);
+            });
+                
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
+
+}
+
+
+
 
 /*
 node liri.js movie-this '<movie name here>'
