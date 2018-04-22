@@ -1,4 +1,5 @@
 require("dotenv").config();
+var inquirer = require("inquirer");
 var keys = require("./keys.js")
 var Twitter = require('twitter');
 var Spotify = require('node-spotify-api');
@@ -7,7 +8,53 @@ var request = require('request');
 var command = process.argv[2];
 var instruction = process.argv[3];
 var instruction2 = process.argv[4];
-console.log("this is the command: ", command);
+// console.log("this is the command: ", command);
+
+/*
+==================
+INQUIRER
+==================
+*/
+inquirer.prompt([
+    {
+      type: "list",
+      message: "What can I do for you?",
+      choices: ["Show Tweets", "Search a song", "Search a movie"],
+      name: "action"
+    },
+  ])
+  .then(function(response) {
+    // If the inquirerResponse confirms, we displays the inquirerResponse's username and pokemon from the answers.
+    if (response.action === "Show Tweets") {
+      console.log("Ok! Here are your latest tweets: ");
+        showTweets();
+    }
+    else if (response.action === "Search a song") {
+        inquirer.prompt([
+        {
+        type: "input",
+        message: "Alright! What track do you want me to search?",
+        name: "track"
+        },
+        ])
+        .then(function(songInput) {            
+            if (songInput.track) {
+                searchSpotify(songInput.track);
+            }
+            else {
+                searchSpotify("I saw the sign")
+            }
+        })
+    }
+
+    else if (response.action === "Search a movie") {
+        console.log("Which movie?");
+    }
+    else {
+      console.log("\nNot sure what to do? You can show your last tweets, search a song in Spotify, or a movie in the OMDB!\n");
+    }
+  });
+
 
 /* 
 ==================
@@ -24,17 +71,23 @@ var client = new Twitter({
 var numTweets = 20;
 
 if (command === "my-tweets") {
+    showTweets();
+};
+
+function showTweets() {
     var params = {screen_name: 'panierdecrabe', count: numTweets};
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
     if (!error) {
         tweets.forEach(function(element) {
+            console.log("********************");
             console.log(element.created_at);
+            console.log("********************");
             console.log(element.text);
+            console.log("--------------------\n\n");
           });
         }
     })
-};
-
+}
 /* 
 ==================
 SPOTIFY
@@ -55,23 +108,20 @@ If no song is provided then your program will default to "The Sign" by Ace of Ba
 
 // search: function({ type: 'artist OR album OR track', query: 'My search query', limit: 20 }, callback);
 if (command === "spotify-this-song") {
-    let track; 
-    if(instruction === "" && instruction2 === "") {
-    track = "The sign"    
-    }
-    else {
-        track = instruction + " " + instruction2;
-    }
+ searchSpotify()   
+}
+
+function searchSpotify (searchedTrack) {
+    let track = searchedTrack;
     var spotify = new Spotify({
         id: process.env.SPOTIFY_ID,
         secret: process.env.SPOTIFY_SECRET
       });
-    console.log("this is spotify" + JSON.stringify(spotify))   
-      spotify
-        .search({ type: 'track', limit: 5, query: track })
+    // console.log("this is spotify" + JSON.stringify(spotify))   
+      spotify.search({ type: 'track', limit: 5, query: track })
         .then(function(response) {
             response.tracks.items.forEach(function(element) {
-                console.log(element)
+                // console.log(element);
                 console.log("***************")
                 console.log("Track Name: ", element.name);
                 console.log("Album: ", element.album.name);
@@ -80,14 +130,11 @@ if (command === "spotify-this-song") {
                 console.log("URL: ", element.href) // which will not work without the token ID
                 console.log("***************")
             });
-                
         })
         .catch(function(err) {
           console.log(err);
         });
-
 }
-
 
 /*
 node liri.js movie-this '<movie name here>'
@@ -134,10 +181,6 @@ if (command === "movie-this") {
     }
     });
 }
-
-
-
-
 
 
 /* 

@@ -1,4 +1,4 @@
-console.log('LIRI is ready!');
+console.log(`Hi! I am LIRI, you virtual assistant :)`);
 
 exports.twitter = {
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
