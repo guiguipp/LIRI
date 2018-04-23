@@ -25,7 +25,6 @@ inquirer.prompt([
     },
   ])
   .then(function(response) {
-    // If the inquirerResponse confirms, we displays the inquirerResponse's username and pokemon from the answers.
     if (response.action === "Show Tweets") {
       console.log(`Ok! Here are your latest tweets:\n`);
         showTweets();
@@ -70,6 +69,9 @@ inquirer.prompt([
                       .then(function(sure) {
                         if (sure.confirm) {
                             searchMovie(movieInput.movie);
+                            }
+                        else {
+                            console.log("Yeah, I thought so..."); 
                         }
                     });
                 }            
@@ -211,14 +213,5 @@ function writeLog(type, log){
         if(err){
             console.log("Failed to write files: ",err);
         }
-        else {
-            console.log(`Logged`);
-        }
     })
 }
-
-
-/* 
-BUGS:
-Spotify: Search for both tracks and albums
-*/
