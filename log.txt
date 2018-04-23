@@ -1,7 +1,4 @@
-Wrote log: Star Wars
-Wrote movie log: Jurassic Park
-Wrote movie log: Aliens
-Wrote song log: Remember
-Wrote song log: The Final Countdown
-Wrote Twitter log: panierdecrabe
-New song log: Aline
+New Twitter log: panierdecrabe
+New song log: Black
+New song log: Black Pearl Jam
+New movie log: Black Panther
