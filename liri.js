@@ -1,4 +1,5 @@
 require("dotenv").config();
+var fs = require("fs");
 var inquirer = require("inquirer");
 var keys = require("./keys.js")
 var Twitter = require('twitter');
@@ -55,19 +56,35 @@ inquirer.prompt([
             name: "movie"
             },
             ])
-            .then(function(movieInput) {            
-                if (movieInput.movie) {
+            .then(function(movieInput) {
+                if (movieInput.movie === "Space Jam") {
+                    inquirer
+                    .prompt([
+                      {
+                        type: "confirm",
+                        message: "...really?",
+                        name: "confirm",
+                        default: true
+                      },
+                    ])
+                      .then(function(sure) {
+                        if (sure.confirm) {
+                            searchMovie(movieInput.movie);
+                        }
+                    });
+                }            
+                else if (movieInput.movie) {
                     searchMovie(movieInput.movie);
                 }
                 else {
                     searchMovie("Mr. Nobody")
                 }
             })
-    }
-    else {
-      console.log("\nNot sure what to do? You can show your last tweets, search a song in Spotify, or a movie in the OMDB!\n");
-    }
-  });
+        }
+        else {
+        console.log("\nNot sure what to do? You can show your last tweets, search a song in Spotify, or a movie in the OMDB!\n");
+        }
+    });
 
 
 /* 
@@ -90,8 +107,10 @@ if (command === "my-tweets") {
 
 function showTweets() {
     var params = {screen_name: 'panierdecrabe', count: numTweets};
+    writeLog("Twitter",params.screen_name)
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
     if (!error) {
+
         tweets.forEach(function(element) {
             console.log(`***********************************`);
             console.log(`On ${element.created_at}`);
@@ -120,6 +139,7 @@ if (command === "spotify-this-song") {
 
 function searchSpotify (searchedTrack) {
     let track = searchedTrack;
+    writeLog("song",track)
     var spotify = new Spotify({
         id: process.env.SPOTIFY_ID,
         secret: process.env.SPOTIFY_SECRET
@@ -131,12 +151,9 @@ function searchSpotify (searchedTrack) {
         })
         .then(function(response) {
             response.tracks.items.forEach(function(element) {
-                console.log("***************")
-                console.log("Track Name: ", element.name);
-                console.log("Album: ", element.album.name);
-                console.log("Artist: ", element.artists[0].name);
-                console.log("URL: ", element.href) // which will not work without the token ID
-                console.log("***************")
+                var log = `\n***************\nTrack Name: ${element.name}\nAlbum: ${element.album.name}\nArtist: ${element.artists[0].name}\nURL: ${element.href}\n***************`
+                console.log(log);                
+                // writeLog("song", log)
             });
         })
         .catch(function(err) {
@@ -156,21 +173,21 @@ if (command === "movie-this") {
 
 function searchMovie (movieName) {
     let query = "https://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
+    writeLog("movie", movieName)
     request(query, function (error, response, body) {
     if (!error) {
         let data = JSON.parse(body);
-        console.log(`Got it! Here is your info:\n\n**********\nTitle of the movie: ${data.Title}\nYear the movie came out: ${data.Year}\nCountry where the movie was produced: ${data.Country}\nLanguage of the movie: ${data.Language}.\n\nPlot of the movie:\n"${data.Plot}"\nCast: ${data.Actors}\n`)
+        console.log(`Got it! Here is your info:\n\n**********\nTitle of the movie: ${data.Title}\nYear the movie came out: ${data.Year}\nCountry where the movie was produced: ${data.Country}\nLanguage of the movie: ${data.Language}.\n\nPlot of the movie:\n"${data.Plot}"\n\nCast: ${data.Actors}\n`)
         data.Ratings.forEach(function(element) {
             console.log(`${element.Source} rating of the movie: ${element.Value}`)
         });
         console.log(`\n**********\n`);
-        
     }
     else {
         console.log('error:', error); 
         console.log('statusCode:', response && response.statusCode);
     }
-    });
+});
 }
 
 /* 
@@ -184,12 +201,24 @@ Feel free to change the text in that document to test out the feature for other 
 */
 
 
-
+/*
+===============
+FS
+===============
+*/
+function writeLog(type, log){
+    fs.appendFile("log.txt",`\nNew ${type} log: ${log}`,encoding='utf8',function(err){
+        if(err){
+            console.log("Failed to write files: ",err);
+        }
+        else {
+            console.log(`Logged`);
+        }
+    })
+}
 
 
 /* 
 BUGS:
-
 Spotify: Search for both tracks and albums
-Twitter: Not showing full text of tweet
 */
